@@ -11,6 +11,9 @@ App
 ===
 iOS app that lets you browse the cartoons, and provides a nifty picker to go back and forth across the years all the way back to 1976.
 
+The app is a part of a separate repo here: https://github.com/arg0s/amulios
+
+
 TODO
 ----
 * Wire the greatest hits to the Google Analytics feed and key off top content
