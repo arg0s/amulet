@@ -35,6 +35,17 @@ bucket = get_s3_bucket(bucket_name)
 json_key = bucket.get_key('amul.json')
 plist_key = bucket.get_key('amul.plist')
 
+def split_seq(seq, numpieces):
+	seqlen = len(seq)
+	d, m = divmod(seqlen, numpieces)
+	rlist = range(0, ((d + 1) * (m + 1)), (d + 1))
+	if d != 0: rlist += range(rlist[-1] + d, seqlen, d) + [seqlen]
+	newseq = []
+	for i in range(len(rlist) - 1):
+		newseq.append(seq[rlist[i]:rlist[i + 1]])
+	newseq += [[]] * max(0, (numpieces - seqlen))
+	return newseq
+
 def request(url):
 	headers = {'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.6) Gecko/20040113'}
 	return requests.get(url,headers=headers).content
@@ -67,14 +78,17 @@ def scrape_page(page):
 	soup = BeautifulSoup(page)
 	main_table = soup.findAll('table')[1]
 	temp1 = main_table.findAll('tr')
-	for tr in temp1:
-		temp2 = tr.findAll('img')
-		for link in temp2:
-			try:
-				obj = dict(src=link['src'].encode('utf-8'), alt=link['alt'].encode('utf-8'), title=link['title'].encode('utf-8'))
-				page_obj.append(obj)
-			except:
-				pass
+	no_of_parts = len(temp1)/3
+	spl_seq = split_seq(temp1, no_of_parts)
+	for i in range(no_of_parts):
+		link = spl_seq[i][0].findAll('img')[0]
+		desc = spl_seq[i][1].findAll('td')[0].find(text=True)
+		try:
+			obj = dict(src=link['src'].encode('utf-8'), alt=link['alt'].encode('utf-8'), title=link['title'].encode('utf-8'), description=desc.encode('utf-8'))
+			print obj
+			page_obj.append(obj)
+		except:
+			pass
 	return page_obj
 
 if __name__ == "__main__":
