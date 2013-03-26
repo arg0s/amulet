@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python
 import os, sys, time, re
 import plistlib
@@ -58,6 +59,7 @@ def main():
     year_links = soup.findAll('a', text=re.compile(r'Amul hits of the year'))
     #print scrape_year(year_links[0])
     output = json.dumps([scrape_year(year) for year in year_links])
+    print output
     json_key.set_contents_from_string(output,cb=percent_cb,num_cb=25)
     json_key.set_acl('public-read')
 
@@ -73,9 +75,11 @@ def scrape_year(year):
             break
     return dict(year=year, topicals=year_obj)
 
+
+
 def scrape_page(page):
 	page_obj = []
-	soup = BeautifulSoup(page)
+	soup = BeautifulSoup(page,convertEntities=BeautifulSoup.HTML_ENTITIES)
 	main_table = soup.findAll('table')[1]
 	temp1 = main_table.findAll('tr')
 	no_of_parts = len(temp1)/3
@@ -84,8 +88,11 @@ def scrape_page(page):
 		link = spl_seq[i][0].findAll('img')[0]
 		desc = spl_seq[i][1].findAll('td')[0].find(text=True)
 		try:
-			obj = dict(src=link['src'].encode('utf-8'), alt=link['alt'].encode('utf-8'), title=link['title'].encode('utf-8'), description=desc.encode('utf-8'))
-			print obj
+			description = desc.encode('ascii','ignore')
+			title = link['title'].encode('ascii','ignore')
+			alt = link['alt'].encode('ascii', 'ignore')
+			obj = dict(src=link['src'].encode('utf-8'), alt=alt, title=title, description=description)
+			#print obj
 			page_obj.append(obj)
 		except:
 			pass
